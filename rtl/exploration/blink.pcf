@@ -1,0 +1,2 @@
+set_io LED4 A25
+set_io CLK_3P3_MHZ A9

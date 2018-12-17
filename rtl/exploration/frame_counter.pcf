@@ -1,0 +1,13 @@
+set_io CLK_3P3_MHZ A9
+set_io LED4 A25
+
+set_io VSYNC A33
+
+set_io COUNT[0] B26
+set_io COUNT[1] B27
+set_io COUNT[2] A38
+set_io COUNT[3] B29
+set_io COUNT[4] B30
+set_io COUNT[5] B31
+set_io COUNT[6] A43
+set_io COUNT[7] B34

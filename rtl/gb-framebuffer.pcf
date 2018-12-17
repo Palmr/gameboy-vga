@@ -1,0 +1,14 @@
+## INPUTS
+
+# 3.3 MHz clock input
+set_io CLK_3P3_MHZ A9
+
+# GB LCD Inputs
+set_io D0 A1        # MGB LCD pin 5
+set_io D1 A2        # MGB LCD pin 6
+set_io HSYNC B1     # MGB LCD pin 4
+set_io VSYNC A3     # MGB LCD pin 13
+set_io PX_CLK B2    # MGB LCD pin 7
+
+## OUTPUTS
+
