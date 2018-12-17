@@ -1,4 +1,4 @@
-# Fpga Game Boy Framebuffer
+# FPGA Game Boy Framebuffer
 
 Targeting the [Lattice Semi](http://www.latticesemi.com) ICE40LP1K.
 
