@@ -1,0 +1,6 @@
+set_io VSYNC A33
+set_io PIXEL_CLOCK B26
+
+set_io CLK_3P3_MHZ A9
+set_io OUTPUT_ENABLED A29
+set_io SERIAL_OUT B27

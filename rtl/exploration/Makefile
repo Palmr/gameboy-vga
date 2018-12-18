@@ -8,3 +8,6 @@ flash-blink:
 flash-frame_counter:
 	@make flash V=frame_counter.v TOP=frame_counter PCF=frame_counter.pcf
 
+flash-pixels_per_frame_counter:
+	@make flash V=pixels_per_frame_counter.v TOP=pixels_per_frame_counter PCF=pixels_per_frame_counter.pcf
+
