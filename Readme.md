@@ -24,4 +24,4 @@ Required software:
 
 ## RTL
 
-Currently just experimenting, [see the rtl/exploration/Readme.md](.rtl/exploration/Readme.md) for more on that.
+Currently just experimenting, [see the rtl/exploration/Readme.md](./rtl/exploration/Readme.md) for more on that.
