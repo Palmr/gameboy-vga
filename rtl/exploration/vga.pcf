@@ -1,0 +1,13 @@
+set_io CLK100MHz A29
+
+set_io vga_r[0] B34
+set_io vga_r[1] A43
+
+set_io vga_g[0] B30
+set_io vga_g[1] B29
+
+set_io vga_b[0] B27
+set_io vga_b[1] B26
+
+set_io vga_hs A34
+set_io vga_vs A35
