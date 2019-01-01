@@ -1,5 +1,5 @@
 USE_SUDO = 1
-BOARD = iCEblink40LP1K
+BOARD = iceblink
 PCF = gb-framebuffer.pcf
 SELF_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
