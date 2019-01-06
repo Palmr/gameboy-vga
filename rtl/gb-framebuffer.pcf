@@ -1,14 +1,25 @@
 ## INPUTS
 
-# 3.3 MHz clock input
-set_io CLK_3P3_MHZ A9
+# FPGA clock
+set_io CLK_16MHz    B2
 
 # GB LCD Inputs
-set_io D0 A1        # MGB LCD pin 5
-set_io D1 A2        # MGB LCD pin 6
-set_io HSYNC B1     # MGB LCD pin 4
-set_io VSYNC A3     # MGB LCD pin 13
-set_io PX_CLK B2    # MGB LCD pin 7
+set_io GB_DAT[0]    E1  # BX:9  <- MGB LCD pin 5
+set_io GB_DAT[1]    G2  # BX:10 <- MGB LCD pin 6
+set_io GB_HSYNC     H1  # BX:11 <- MGB LCD pin 4
+set_io GB_VSYNC     J1  # BX:12 <- MGB LCD pin 13
+set_io GB_PX_CLK    H2  # BX:13 <- MGB LCD pin 7
 
 ## OUTPUTS
 
+set_io vga_r[0]     A9  # RED BX:18 -> 330r -> 330r -> VGA:1
+set_io vga_r[1]     B7  # RED BX:21 -> 330r -> VGA:1
+
+set_io vga_g[0]     C9  # GREEN BX:17 -> 330r -> 330r -> VGA:2
+set_io vga_g[1]     A8  # GREEN BX:20 -> 330r -> VGA:2
+
+set_io vga_b[0]     D8  # BLUE BX:16 -> 330r -> 330r -> VGA:3
+set_io vga_b[1]     B8  # BLUE BX:19 -> 330r -> VGA:3
+
+set_io vga_hs       A6  # HSYNC BX:24 -> orange -> VGA:13
+set_io vga_vs       B6  # HSYNC BX:23 -> yellow -> VGA:14
