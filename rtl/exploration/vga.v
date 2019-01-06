@@ -1,7 +1,7 @@
 `default_nettype none			//disable implicit definitions by Verilog
 
 module top(				//top module and signals wired to FPGA pins
-	CLK100MHz,
+	CLK16MHz,
 	vga_r,
 	vga_g,
 	vga_b,
@@ -9,7 +9,7 @@ module top(				//top module and signals wired to FPGA pins
 	vga_vs
 );
 
-input			CLK100MHz;	// Oscillator input 100Mhz
+input			CLK16MHz;	// Oscillator input 16Mhz
 output  [1:0]   	vga_r;		// VGA Red 2 bit
 output  [1:0]   	vga_g;		// VGA Green 2 bit
 output  [1:0]   	vga_b;		// VGA Blue 2 bit
@@ -30,18 +30,37 @@ parameter v_fp      = 10;	//V-FP front porch pulse width
 parameter v_pol     = 1'b1;	//V-SYNC polarity
 parameter v_frame   = 525;	// 525 = 2 (V-SYNC) + 33 (V-BP) + 480 (V-PIX) + 10 (V-FP)
 
-reg	[1:0]		clk_div;	// 2 bit counter
-wire			vga_clk;	
+/**
+ * PLL configuration
+ *
+ * This Verilog module was generated automatically
+ * using the icepll tool from the IceStorm project.
+ * Use at your own risk.
+ *
+ * Given input frequency:        16.000 MHz
+ * Requested output frequency:   25.000 MHz
+ * Achieved output frequency:    25.000 MHz
+ */
 
-assign 	vga_clk 	= clk_div[1];		// 25Mhz clock = 100Mhz divided by 2-bit counter
+wire			vga_clk;
+SB_PLL40_CORE #(
+		.FEEDBACK_PATH("SIMPLE"),
+		.DIVR(4'b0000),		// DIVR =  0
+		.DIVF(7'b0110001),	// DIVF = 49
+		.DIVQ(3'b101),		// DIVQ =  5
+		.FILTER_RANGE(3'b001)	// FILTER_RANGE = 1
+	) uut (
+		// .LOCK(locked),
+		.RESETB(1'b1),
+		.BYPASS(1'b0),
+		.REFERENCECLK(CLK16MHz),
+		.PLLOUTCORE(vga_clk)
+		);
 
-always @ (posedge CLK100MHz) begin		// 2-bt counter ++ on each positive edge of 100Mhz clock
-	clk_div <= clk_div + 2'b1;
-end
 
-reg     [2:0]   	vga_r_r;	//VGA color registers R,G,B x 3 bit
-reg     [2:0]   	vga_g_r;
-reg     [2:0]   	vga_b_r;
+reg     [1:0]   	vga_r_r;	//VGA color registers R,G,B x 2 bit
+reg     [1:0]   	vga_g_r;
+reg     [1:0]   	vga_b_r;
 reg             	vga_hs_r;	//H-SYNC register
 reg             	vga_vs_r;	//V-SYNC register
 
@@ -60,13 +79,19 @@ reg     [9:0]   	c_ver;		//visible  frame register vertically
 
 reg			disp_en;	//display enable flag
 
+reg [1:0] dat_in;
+
+// assign dat_in = (c_hor[1:0] << 1 & ~c_ver[4] << 1) | ((c_hor[1:0] & c_ver[4] << 1));
+// assign dat_in = c_hor[1:0];
+assign dat_in = c_hor[c_ver[9:8]:c_ver[7:4]];
+
 reg [1:0] dout;
 framebuffer framebuff (
-    .din(0),
+    .din(dat_in << 1),
     .write_en(1),
-    .waddr(c_row),
+    .waddr(c_ver),
     .wclk(vga_clk),
-    .raddr(c_row), 
+    .raddr(c_ver), 
     .rclk(vga_clk), 
     .dout(dout)
 );
@@ -130,17 +155,27 @@ always @ (posedge vga_clk) begin				//25Mhz clock
 	end
 
 	if(disp_en == 1 && reset == 0) begin
-		if(c_row == 0 || c_col == 0 || c_row == v_pixels-1 || c_col == h_pixels-1) begin	//generate red frame with size 640x480
-			vga_r_r <= 7;
+		if(c_row == 1 || ((c_col == 0 || c_row == v_pixels-1 || c_col == h_pixels-3)/* && c_row[4]*/)) begin	//generate red frame with size 640x480
+			vga_r_r <= 2;
 			vga_g_r <= 0;
 			vga_b_r <= 0;
 		end
-		// else if(c_col > l_sq_pos_x && c_col < r_sq_pos_x && c_row > u_sq_pos_y && c_row < d_sq_pos_y) begin	//generate blue square
-		// 	vga_r_r <= 7;
-		// 	vga_g_r <= 0;
-		// 	vga_b_r <= 7;
-		// end
-		else begin			//everything else is black
+		else if(c_row == 1 || c_col == 1 || c_row == v_pixels-2 || c_col == h_pixels-2) begin
+			vga_r_r <= 0;
+			vga_g_r <= 2;
+			vga_b_r <= 0;
+		end
+		else if(c_row == 2 || c_col == 2 || c_row == v_pixels-3 || c_col == h_pixels-3) begin
+			vga_r_r <= 0;
+			vga_g_r <= 0;
+			vga_b_r <= 2;
+		end
+		else if(c_row > 159) begin
+			vga_r_r <= c_row[4:3];
+			vga_g_r <= c_row[4:3];
+			vga_b_r <= c_row[4:3];
+		end
+		else begin			//everything else from framebuffer
 			vga_r_r <= dout;
 			vga_g_r <= dout;
 			vga_b_r <= dout;
