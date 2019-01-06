@@ -1,0 +1,5 @@
+set_io iCE_CLK A9
+
+set_io RS232_Rx_TTL A29
+set_io RS232_Tx_TTL B20
+set_io rx_led B19

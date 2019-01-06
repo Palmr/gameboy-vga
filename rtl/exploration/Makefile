@@ -12,5 +12,8 @@ flash-pixels_per_frame_counter:
 	@make flash V=pixels_per_frame_counter.v TOP=pixels_per_frame_counter PCF=pixels_per_frame_counter.pcf
 
 flash-vga:
-	@make flash BOARD=bx V=vga.v TOP=top PCF=vga.pcf
+	@make flash BOARD=bx V=vga.v PCF=vga.pcf
+
+flash-uart:
+	@make flash V=uart.v TOP=transmit_hello PCF=uart.pcf
 
