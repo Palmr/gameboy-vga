@@ -4,11 +4,11 @@
 set_io CLK_16MHz    B2
 
 # GB LCD Inputs
-set_io GB_DAT[0]    E1  # BX:9  <- MGB LCD pin 5
-set_io GB_DAT[1]    G2  # BX:10 <- MGB LCD pin 6
-set_io GB_HSYNC     H1  # BX:11 <- MGB LCD pin 4
-set_io GB_VSYNC     J1  # BX:12 <- MGB LCD pin 13
-set_io GB_PX_CLK    H2  # BX:13 <- MGB LCD pin 7
+set_io GB_DAT[0]    H2  # BX:13 <- MGB LCD pin 5
+set_io GB_DAT[1]    J1  # BX:12 <- MGB LCD pin 6
+set_io GB_PX_CLK    H1  # BX:11 <- MGB LCD pin 7
+set_io GB_VSYNC     G2  # BX:10 <- MGB LCD pin 13
+set_io GB_HSYNC     E1  # BX:9  <- MGB LCD pin 4
 
 ## OUTPUTS
 

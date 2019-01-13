@@ -92,7 +92,7 @@ module top(
             // gb_hsync_count <= 0;
             LAST_GB_VSYNC_RESET <= GB_VSYNC_RESET;
         end
-        else if (~GB_VSYNC && ~GB_HSYNC) begin
+        else begin
             gb_pixel_count <= gb_pixel_count + 1;
         end
     end
@@ -114,18 +114,18 @@ module top(
         .din(GB_DAT),
         .write_en(fb_write_id == 0),
         .waddr(gb_pixel_count),
-        .wclk(~GB_PX_CLK),
+        .wclk(GB_PX_CLK),
         .raddr(fb_addr), 
-        .rclk(~CLK_25MHz & (c_ver < 144) & (c_hor < 160)), 
+        .rclk(CLK_25MHz), 
         .dout(fb_0_out)
     );
     framebuffer fb_1 (
         .din(GB_DAT),
         .write_en(fb_write_id == 1),
         .waddr(gb_pixel_count),
-        .wclk(~GB_PX_CLK),
+        .wclk(GB_PX_CLK),
         .raddr(fb_addr),
-        .rclk(~CLK_25MHz & (c_ver < 144) & (c_hor < 160)), 
+        .rclk(CLK_25MHz), 
         .dout(fb_1_out)
     );
 
@@ -187,17 +187,18 @@ module top(
         end
 
         if(disp_en == 1 && reset == 0) begin
+            fb_addr = c_hor + (c_ver * 158);
+            
             if (c_hor < 161 && c_ver < 145) begin
-                fb_addr = c_hor + (c_ver * 160);
                 if (fb_write_id == 0) begin
-                    vga_r_r <= fb_1_out;
-                    vga_g_r <= fb_1_out;
-                    vga_b_r <= fb_1_out;
+                    vga_r_r <= ~fb_1_out;
+                    vga_g_r <= ~fb_1_out;
+                    vga_b_r <= ~fb_1_out;
                 end
                 else begin
-                    vga_r_r <= fb_0_out;
-                    vga_g_r <= fb_0_out;
-                    vga_b_r <= fb_0_out;
+                    vga_r_r <= ~fb_0_out;
+                    vga_g_r <= ~fb_0_out;
+                    vga_b_r <= ~fb_0_out;
                 end
             end
             else if (c_hor[9:5] < 15 && c_ver >= 145 && c_ver < 185) begin
@@ -259,7 +260,7 @@ module framebuffer (din, write_en, waddr, wclk, raddr, rclk, dout);
     localparam pixel_count = 160 * 144;
     reg [data_width-1:0] mem [pixel_count-1:0];
 
-    always @(posedge wclk) // Write memory.
+    always @(negedge wclk) // Write memory.
     begin
         if (write_en)
             mem[waddr] <= din; // Using write address bus.
