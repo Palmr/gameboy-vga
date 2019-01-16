@@ -185,11 +185,11 @@ $EndComp
 Text GLabel 1350 2950 0    50   Input ~ 0
 GB_DATA_1
 $Comp
-L Connector_Generic:Conn_02x14_Counter_Clockwise TinyFPGA_BX1
+L TinyFPGA_BX:TinyFPGA_BX TinyFPGA_BX1
 U 1 1 5C3BA172
 P 5350 1400
 F 0 "TinyFPGA_BX1" H 5400 2217 50  0000 C CNN
-F 1 "Conn_02x14_Odd_Even" H 5400 2126 50  0000 C CNN
+F 1 "FPGA" H 5400 2126 50  0000 C CNN
 F 2 "pcb:TinyFPGA_BX" H 5350 1400 50  0001 C CNN
 F 3 "~" H 5350 1400 50  0001 C CNN
 	1    5350 1400
@@ -206,12 +206,6 @@ F 3 "" H 4650 600 50  0001 C CNN
 	1    4650 600 
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	4650 600  4950 600 
-Wire Wire Line
-	4950 600  4950 800 
-Wire Wire Line
-	4950 800  5150 800 
 $Comp
 L Connector:DB15_Female_HighDensity VGA1
 U 1 1 5C3BA5BF
@@ -308,33 +302,33 @@ Text GLabel 1600 4150 2    50   Output ~ 0
 IN_PIXEL_CLK
 Text GLabel 1600 5100 2    50   Output ~ 0
 IN_VSYNC
-Text GLabel 5150 1300 0    50   Input ~ 0
+Text GLabel 5000 1300 0    50   Input ~ 0
 IN_DATA_0
-Text GLabel 5150 1500 0    50   Input ~ 0
+Text GLabel 5000 1500 0    50   Input ~ 0
 IN_DATA_1
-Text GLabel 5150 1800 0    50   Input ~ 0
+Text GLabel 5000 1800 0    50   Input ~ 0
 IN_PIXEL_CLK
-Text GLabel 5150 2100 0    50   Input ~ 0
+Text GLabel 5000 2100 0    50   Input ~ 0
 IN_VSYNC
-Text GLabel 5650 1100 2    50   Output ~ 0
+Text GLabel 5700 1200 2    50   Output ~ 0
 OUT_R_1
-Text GLabel 5650 1300 2    50   Output ~ 0
+Text GLabel 5700 1400 2    50   Output ~ 0
 OUT_G_0
-Text GLabel 5650 1600 2    50   Output ~ 0
+Text GLabel 5700 1700 2    50   Output ~ 0
 OUT_B_0
-Text GLabel 5650 2100 2    50   Output ~ 0
+Text GLabel 5700 2100 2    50   Output ~ 0
 VGA_VSYNC
-Text GLabel 5650 1900 2    50   Output ~ 0
+Text GLabel 5700 2000 2    50   Output ~ 0
 VGA_HSYNC
 Text Notes 2900 1900 2    50   ~ 0
 GB 5v input, voltage dividers knocks down to 3.3v for FPGA
 Text Notes 9500 2550 2    50   ~ 0
 FPGA 3.3v signal needs dividing and laddering for VGA RGB 0 - 0.7V signal
-Text GLabel 5650 1000 2    50   Output ~ 0
+Text GLabel 5700 1100 2    50   Output ~ 0
 OUT_R_0
-Text GLabel 5650 1400 2    50   Output ~ 0
+Text GLabel 5700 1500 2    50   Output ~ 0
 OUT_G_1
-Text GLabel 5650 1700 2    50   Output ~ 0
+Text GLabel 5700 1800 2    50   Output ~ 0
 OUT_B_1
 $Comp
 L Device:R R10
@@ -510,4 +504,8 @@ VGA_B
 Connection ~ 8950 3300
 Wire Wire Line
 	8950 3300 8750 3300
+Wire Wire Line
+	4650 600  5000 600 
+Wire Wire Line
+	5000 600  5000 800 
 $EndSCHEMATC
