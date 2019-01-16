@@ -1,2 +1,3 @@
-set_io LED4 A25
-set_io CLK_3P3_MHZ A9
+set_io -nowarn CLK16MHz B2
+
+set_io -nowarn BLINK_PIN A2
