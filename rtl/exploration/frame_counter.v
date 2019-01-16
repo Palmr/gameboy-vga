@@ -1,20 +1,20 @@
 // Count frames per second
 module frame_counter (
-    input wire CLK_3P3_MHZ,
+    input wire CLK16MHz,
     input wire VSYNC,
-    output reg [7:0] COUNT,
-    output wire LED4
+    output reg [6:0] COUNT,
+    output wire BLINK_PIN
 );
 
-    parameter CLOCKS_PER_SEC   = 3287000; // Gets +-30us from 1s
+    parameter CLOCKS_PER_SEC   = 15998100; // Gets +-5us from 1s
     reg [31:0] CLOCK_COUNTER = 0;
     reg LED_STATE = 0;
 
-    reg [7:0] FRAME_COUNT = 0;
+    reg [6:0] FRAME_COUNT = 0;
     wire RESET;
     wire LAST_RESET;
   
-    always @ (posedge CLK_3P3_MHZ)
+    always @ (posedge CLK16MHz)
     begin
         if (CLOCK_COUNTER == CLOCKS_PER_SEC-1) // -1, since counter starts at 0
             begin
@@ -42,6 +42,6 @@ module frame_counter (
     end
 
     assign COUNT = FRAME_COUNT;
-    assign LED4 = LED_STATE;
+    assign BLINK_PIN = LED_STATE;
 
 endmodule
