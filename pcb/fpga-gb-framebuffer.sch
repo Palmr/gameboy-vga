@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:fpga-gb-framebuffer-cache
 EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
@@ -307,11 +308,11 @@ Text GLabel 1600 4150 2    50   Output ~ 0
 IN_PIXEL_CLK
 Text GLabel 1600 5100 2    50   Output ~ 0
 IN_VSYNC
-Text GLabel 5150 1600 0    50   Input ~ 0
+Text GLabel 5150 1300 0    50   Input ~ 0
 IN_DATA_0
-Text GLabel 5150 1700 0    50   Input ~ 0
+Text GLabel 5150 1500 0    50   Input ~ 0
 IN_DATA_1
-Text GLabel 5150 1900 0    50   Input ~ 0
+Text GLabel 5150 1800 0    50   Input ~ 0
 IN_PIXEL_CLK
 Text GLabel 5150 2100 0    50   Input ~ 0
 IN_VSYNC
