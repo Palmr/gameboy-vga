@@ -4,22 +4,22 @@
 set_io CLK_16MHz    B2
 
 # GB LCD Inputs
-set_io GB_DAT[0]    H2  # BX:13 <- MGB LCD pin 5
-set_io GB_DAT[1]    J1  # BX:12 <- MGB LCD pin 6
-set_io GB_PX_CLK    H1  # BX:11 <- MGB LCD pin 7
-set_io GB_VSYNC     G2  # BX:10 <- MGB LCD pin 13
-set_io GB_HSYNC     E1  # BX:9  <- MGB LCD pin 4
+set_io GB_DAT[0]    C1  # BX:5  <- white <- MGB LCD pin 5
+set_io GB_DAT[1]    D1  # BX:7  <- white <- MGB LCD pin 6
+set_io GB_PX_CLK    G2  # BX:10 <- orange <- MGB LCD pin 7
+set_io GB_HSYNC     J1  # BX:12 <- n/a <- MGB LCD pin 4 # Currently not connected on board
+set_io GB_VSYNC     H2  # BX:13 <- yellow <- MGB LCD pin 13
 
 ## OUTPUTS
 
-set_io vga_r[0]     A9  # RED BX:18 -> 330r -> 330r -> VGA:1
-set_io vga_r[1]     B7  # RED BX:21 -> 330r -> VGA:1
+set_io vga_r[0]     A6  # RED BX:24 -> 1k/10k -> VGA:1
+set_io vga_r[1]     B6  # RED BX:23 -> 470/10k -> VGA:1
 
-set_io vga_g[0]     C9  # GREEN BX:17 -> 330r -> 330r -> VGA:2
-set_io vga_g[1]     A8  # GREEN BX:20 -> 330r -> VGA:2
+set_io vga_g[0]     B7  # GREEN BX:21 -> 1k/10k -> VGA:2
+set_io vga_g[1]     A8  # GREEN BX:20 -> 470/10k -> VGA:2
 
-set_io vga_b[0]     D8  # BLUE BX:16 -> 330r -> 330r -> VGA:3
-set_io vga_b[1]     B8  # BLUE BX:19 -> 330r -> VGA:3
+set_io vga_b[0]     A9  # BLUE BX:18 -> 1k/10k -> VGA:3
+set_io vga_b[1]     C9  # BLUE BX:17 -> 470/10k -> VGA:3
 
-set_io vga_hs       A6  # HSYNC BX:24 -> orange -> VGA:13
-set_io vga_vs       B6  # HSYNC BX:23 -> yellow -> VGA:14
+set_io vga_hs       D9  # HSYNC BX:15 -> purple/orange -> VGA:13
+set_io vga_vs       H9  # VSYNC BX:14 -> yellow -> VGA:14

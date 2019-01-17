@@ -77,20 +77,15 @@ module top(
     reg disp_en;    //Display enable flag
 
     reg [14:0] gb_pixel_per_vsync = 15'b0;
-    reg [14:0] gb_hsync_per_vsync = 15'b0;
-    reg [14:0] gb_hsync_count = 15'b0;
 
     reg [14:0] gb_pixel_count = 15'b0;
     reg GB_VSYNC_RESET = 1'b0;
     reg LAST_GB_VSYNC_RESET = 1'b0;
-    reg fb_write_id = 1'b1;
     always @(negedge GB_PX_CLK) begin
         if (GB_VSYNC_RESET == ~LAST_GB_VSYNC_RESET)
         begin
             gb_pixel_per_vsync <= gb_pixel_count;
-            gb_hsync_per_vsync <= gb_hsync_count;
             gb_pixel_count <= 0;
-            // gb_hsync_count <= 0;
             LAST_GB_VSYNC_RESET <= GB_VSYNC_RESET;
         end
         else begin
@@ -99,35 +94,19 @@ module top(
     end
     always @(negedge GB_VSYNC)
     begin
-        fb_write_id <= ~fb_write_id;
         GB_VSYNC_RESET <= ~GB_VSYNC_RESET;
     end
 
-    always @(negedge GB_HSYNC)
-    begin
-        gb_hsync_count <= gb_hsync_count + 1;
-    end
-
     reg [14:0] fb_addr = 15'b0;
-    reg [1:0] fb_0_out;
-    reg [1:0] fb_1_out;
-    framebuffer fb_0 (
+    reg [1:0] fb_out;
+    framebuffer fb (
         .din(GB_DAT),
-        .write_en(fb_write_id == 0),
+        .write_en(1),
         .waddr(gb_pixel_count),
         .wclk(GB_PX_CLK),
         .raddr(fb_addr), 
         .rclk(CLK_25MHz), 
-        .dout(fb_0_out)
-    );
-    framebuffer fb_1 (
-        .din(GB_DAT),
-        .write_en(fb_write_id == 1),
-        .waddr(gb_pixel_count),
-        .wclk(GB_PX_CLK),
-        .raddr(fb_addr),
-        .rclk(CLK_25MHz), 
-        .dout(fb_1_out)
+        .dout(fb_out)
     );
 
     always @(posedge CLK_25MHz) begin   // 25Mhz clock
@@ -188,19 +167,12 @@ module top(
         end
 
         if(disp_en == 1 && reset == 0) begin
-            fb_addr = c_hor + (c_ver * 158);
+            fb_addr = c_hor + (c_ver * 160);
             
             if (c_hor < 161 && c_ver < 145) begin
-                if (fb_write_id == 0) begin
-                    vga_r_r <= ~fb_1_out;
-                    vga_g_r <= ~fb_1_out;
-                    vga_b_r <= ~fb_1_out;
-                end
-                else begin
-                    vga_r_r <= ~fb_0_out;
-                    vga_g_r <= ~fb_0_out;
-                    vga_b_r <= ~fb_0_out;
-                end
+                    vga_r_r <= ~fb_out;
+                    vga_g_r <= ~fb_out;
+                    vga_b_r <= ~fb_out;
             end
             else if (c_hor[9:5] < 15 && c_ver >= 145 && c_ver < 185) begin
                 if (c_ver >= 145 && c_ver < 165) begin
@@ -214,20 +186,6 @@ module top(
                         vga_r_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
                         vga_g_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
                         vga_b_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
-                    end
-                end
-                else if (c_ver >= 165 && c_ver < 185) begin
-
-                    if (c_ver == 165 || c_ver == 184) begin
-                        vga_r_r <= {0, c_hor[5]};
-                        vga_g_r <= {0, ~c_hor[5]};
-                        vga_b_r <= 0;
-                    end
-                    else begin
-                        // Show hsync per vsync
-                        vga_r_r <= gb_hsync_per_vsync[14 - c_hor[9:5]] << 1;
-                        vga_g_r <= gb_hsync_per_vsync[14 - c_hor[9:5]] << 1;
-                        vga_b_r <= gb_hsync_per_vsync[14 - c_hor[9:5]] << 1;
                     end
                 end
             end
