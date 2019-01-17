@@ -167,28 +167,28 @@ module top(
         end
 
         if(disp_en == 1 && reset == 0) begin
-            fb_addr = c_hor + (c_ver * 160);
+            fb_addr = c_hor[9:1] + (c_ver[9:1] * 160);
             
-            if (c_hor < 161 && c_ver < 145) begin
+            if (c_hor < 320 && c_ver < 288) begin
                     vga_r_r <= ~fb_out;
                     vga_g_r <= ~fb_out;
                     vga_b_r <= ~fb_out;
             end
-            else if (c_hor[9:5] < 15 && c_ver >= 145 && c_ver < 185) begin
-                if (c_ver >= 145 && c_ver < 165) begin
-                    if (c_ver == 145 || c_ver == 164) begin
-                        vga_r_r <= {0, c_hor[5]};
-                        vga_g_r <= {0, ~c_hor[5]};
-                        vga_b_r <= 0;
-                    end
-                    else begin
-                        // Show pixels per vsync
-                        vga_r_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
-                        vga_g_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
-                        vga_b_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
-                    end
-                end
-            end
+            // else if (c_hor[9:5] < 15 && c_ver >= 145 && c_ver < 185) begin
+            //     if (c_ver >= 145 && c_ver < 165) begin
+            //         if (c_ver == 145 || c_ver == 164) begin
+            //             vga_r_r <= {0, c_hor[5]};
+            //             vga_g_r <= {0, ~c_hor[5]};
+            //             vga_b_r <= 0;
+            //         end
+            //         else begin
+            //             // Show pixels per vsync
+            //             vga_r_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
+            //             vga_g_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
+            //             vga_b_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
+            //         end
+            //     end
+            // end
             else begin
                 vga_r_r <= 0;
                 vga_g_r <= 0;
