@@ -67,24 +67,9 @@ module top(
 
     always @(posedge CLK_25MHz) begin
         if(vga_pixel_active == 1) begin
-            if (vga_x == 0) begin
+            if (vga_x == 0 || vga_x == 639 || vga_y == 0 || vga_y == 479) begin
                 vga_r_r = 2'b11;
                 vga_g_r = 2'b00;
-                vga_b_r = 2'b00;
-            end
-            else if (vga_x == 639) begin
-                vga_r_r = 2'b00;
-                vga_g_r = 2'b11;
-                vga_b_r = 2'b00;
-            end
-            else if (vga_y == 0) begin
-                vga_r_r = 2'b00;
-                vga_g_r = 2'b00;
-                vga_b_r = 2'b11;
-            end
-            else if (vga_y == 479) begin
-                vga_r_r = 2'b11;
-                vga_g_r = 2'b11;
                 vga_b_r = 2'b11;
             end
             else begin
