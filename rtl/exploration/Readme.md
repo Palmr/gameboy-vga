@@ -44,12 +44,22 @@ In the above screenshot I could confirm I was seeing 0x59FF (23039 == (160*144) 
 make flash-pixels_per_frame_counter
 ```
 
-## vga.v
+## vga_test.v
 
-Testing VGA from a framebuffer. The iCEblink40 board I currently have has a clock that goes up to 33.3Mhz but VGA needs a stable ~25Mhz pixel clock, which I can't create on this board. Currently waiting on a TinyFPGA BX to test this code out.
+Testing VGA
 
 ### Building
 
 ```bash
-make flash-vga
+make flash-vga_test
+```
+
+## uart.v
+
+Testing UART
+
+### Building
+
+```bash
+make flash-uart
 ```

@@ -1,13 +1,8 @@
 `default_nettype none
 
-`include "vga.v"
+`include "../vga.v"
 
 module top(
-    input [1:0] GB_DAT,         // GB pixel data 2 bit
-    input wire GB_VSYNC,        // GB VSYNC
-    input wire GB_HSYNC,        // GB HSYNC
-    input wire GB_PX_CLK,       // GB pixel clock
-
     input wire CLK_16MHz,       // Oscillator input 16Mhz
 
     output [1:0] vga_r,         // VGA Red 2 bit
