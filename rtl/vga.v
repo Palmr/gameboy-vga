@@ -44,7 +44,7 @@ module vga (
     assign  vga_hsync  = vga_hs_r;
     assign  vga_vsync  = vga_vs_r;
 
-    always @(negedge clk) begin   // 25Mhz clock
+    always @(posedge clk) begin   // 25Mhz clock
         if(timer_t > 250) begin         // generate 10 uS RESET signal 
             reset <= 0;
         end

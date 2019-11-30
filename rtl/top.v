@@ -72,29 +72,23 @@ module top(
     reg [9:0]   c_row;          // Complete frame register row
     reg [9:0]   c_col;          // Complete frame register column
     reg [9:0]   c_hor;          // Visible frame register horizontally
-    reg [9:0]   c_ver;          // Visible  frame register vertically
+    reg [9:0]   c_ver;          // Visible frame register vertically
 
     reg disp_en;    //Display enable flag
 
-    reg [14:0] gb_pixel_per_vsync = 15'b0;
-
     reg [14:0] gb_pixel_count = 15'b0;
-    reg GB_VSYNC_RESET = 1'b0;
     reg LAST_GB_VSYNC_RESET = 1'b0;
     always @(negedge GB_PX_CLK) begin
-        if (GB_VSYNC_RESET == ~LAST_GB_VSYNC_RESET)
-        begin
-            gb_pixel_per_vsync <= gb_pixel_count;
+        if (GB_VSYNC == 1'b0 && LAST_GB_VSYNC_RESET == 1'b1) begin
             gb_pixel_count <= 0;
-            LAST_GB_VSYNC_RESET <= GB_VSYNC_RESET;
+            LAST_GB_VSYNC_RESET = 0;
         end
         else begin
             gb_pixel_count <= gb_pixel_count + 1;
+            if (GB_VSYNC == 1'b1) begin
+                LAST_GB_VSYNC_RESET <= 1'b1;
+            end
         end
-    end
-    always @(negedge GB_VSYNC)
-    begin
-        GB_VSYNC_RESET <= ~GB_VSYNC_RESET;
     end
 
     reg [14:0] fb_addr = 15'b0;
@@ -167,32 +161,63 @@ module top(
         end
 
         if(disp_en == 1 && reset == 0) begin
-            fb_addr = c_hor[9:1] + (c_ver[9:1] * 160);
             
-            if (c_hor < 320 && c_ver < 288) begin
+            // GB screen: 160 x 144
+            // GB framebuffer pixels addresses 0:23040 - 0x0000:0x5A00
+
+            // VGA screen: 640 x 480
+            
+            // GB screen 2x scaled: 320 x 288
+
+            // Coords to display 2x screen to have it centered: 160-480 x 96-384
+            // Coords to display 1x screen to have it centered: 240-400 x 168-312
+
+            fb_addr = (c_hor - 240) + ((c_ver - 168) * 160);
+
+            if (c_hor == 239 && c_ver >= 168 && c_ver < 312) begin
+                    vga_r_r <= 2'b11;
+                    vga_g_r <= 2'b00;
+                    vga_b_r <= 2'b00;
+            end 
+            else if (c_hor == 400 && c_ver >= 168 && c_ver < 312) begin
+                    vga_r_r <= 2'b11;
+                    vga_g_r <= 2'b00;
+                    vga_b_r <= 2'b11;
+            end
+            else if (c_ver == 167 && c_hor >= 240 && c_hor < 400) begin
+                    vga_r_r <= 2'b00;
+                    vga_g_r <= 2'b11;
+                    vga_b_r <= 2'b00;
+            end 
+            else if (c_ver == 312 && c_hor >= 240 && c_hor < 400) begin
+                    vga_r_r <= 2'b11;
+                    vga_g_r <= 2'b11;
+                    vga_b_r <= 2'b00;
+            end
+            else if (c_hor >= 240 && c_hor < 400 && c_ver >= 168 && c_ver < 312) begin
                     vga_r_r <= ~fb_out;
                     vga_g_r <= ~fb_out;
                     vga_b_r <= ~fb_out;
             end
-            // else if (c_hor[9:5] < 15 && c_ver >= 145 && c_ver < 185) begin
-            //     if (c_ver >= 145 && c_ver < 165) begin
-            //         if (c_ver == 145 || c_ver == 164) begin
-            //             vga_r_r <= {0, c_hor[5]};
-            //             vga_g_r <= {0, ~c_hor[5]};
-            //             vga_b_r <= 0;
-            //         end
-            //         else begin
-            //             // Show pixels per vsync
-            //             vga_r_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
-            //             vga_g_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
-            //             vga_b_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
-            //         end
-            //     end
-            // end
+                // else if (c_hor[9:5] < 15 && c_ver >= 145 && c_ver < 185) begin
+                //     if (c_ver >= 145 && c_ver < 165) begin
+                //         if (c_ver == 145 || c_ver == 164) begin
+                //             vga_r_r <= {0, c_hor[5]};
+                //             vga_g_r <= {0, ~c_hor[5]};
+                //             vga_b_r <= 0;
+                //         end
+                //         else begin
+                //             // Show pixels per vsync
+                //             vga_r_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
+                //             vga_g_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
+                //             vga_b_r <= gb_pixel_per_vsync[14 - c_hor[9:5]] << 1;
+                //         end
+                //     end
+                // end
             else begin
-                vga_r_r <= 0;
-                vga_g_r <= 0;
-                vga_b_r <= 0;
+               vga_r_r <= 0;
+               vga_g_r <= 0;
+               vga_b_r <= 0;
             end
 
         end
