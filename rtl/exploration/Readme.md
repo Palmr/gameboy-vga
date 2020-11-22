@@ -63,3 +63,13 @@ Testing UART
 ```bash
 make flash-uart
 ```
+
+## vga_test.v
+
+Testing VGA with a gb screen sized framebuffer and optional 2x scaling
+
+### Building
+
+```bash
+make flash-vga_frame_buffer_test
+```

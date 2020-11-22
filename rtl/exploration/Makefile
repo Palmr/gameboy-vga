@@ -14,6 +14,9 @@ flash-pixels_per_frame_counter:
 flash-vga_test:
 	@make flash V=vga_test.v PCF=vga_test.pcf
 
+flash-vga_frame_buffer_test:
+	@make flash V=vga_frame_buffer_test.v PCF=vga_frame_buffer_test.pcf
+
 flash-uart:
 	@make flash V=uart.v TOP=transmit_hello PCF=uart.pcf
 
