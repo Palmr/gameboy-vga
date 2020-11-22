@@ -4,7 +4,7 @@
 
 module top(
     input wire CLK_16MHz,       // Oscillator input 16Mhz
-    input wire scaling_x2,       // Oscillator input 16Mhz
+    input wire scaling_x2,      // GB framebuffer scaling
 
     output [1:0] vga_r,         // VGA Red 2 bit
     output [1:0] vga_g,         // VGA Green 2 bit
@@ -14,7 +14,6 @@ module top(
 );
     parameter gb_h_pixels  = 160;
     parameter gb_v_pixels  = 144;
-    parameter fb_addr_width = 15;
     parameter gb_pixel_data_width = 2;
 
     // IO registers
@@ -72,11 +71,38 @@ module top(
         );
 
     // Framebuffer
-    reg [fb_addr_width-1:0] read_addr;
+    reg [1:0] RDATA_r;
+    reg WE_r = 0;
+	reg [14:0] WADDR_r = 0;
+    reg [1:0] WDATA_r = 2'b00;
+
+    ram bram_buffer (
+        .din(WDATA_r),
+        .write_en(WE_r), 
+        .waddr(WADDR_r), 
+        .wclk(CLK_25MHz), 
+        .raddr(read_addr),
+        .rclk(CLK_25MHz), 
+        .dout(RDATA_r)
+    );
+
+    reg [31:0] CLOCK_COUNTER = 0;
+  
+    always @ (posedge CLK_25MHz)
+    begin
+        WDATA_r <= WADDR_r[1:0];
+        if (CLOCK_COUNTER == 10000)
+        begin        
+            WADDR_r <= WADDR_r - 1;
+            CLOCK_COUNTER <= 0;
+        end
+        else
+            CLOCK_COUNTER <= CLOCK_COUNTER + 1;
+            WE_r <= 1;
+    end
+
+    reg [14:0] read_addr;
     localparam gb_pixel_count = gb_v_pixels * gb_h_pixels;
-    
-    reg [gb_pixel_data_width-1:0] frame_buffer [gb_pixel_count-1:0];
-    initial $readmemb("vga_frame_buffer_160x144.bin", frame_buffer);
 
     // Scaling 
     reg [1:0] scaling = 1 << scaling_x2;
@@ -92,16 +118,12 @@ module top(
                 vga_x >= offset_x && vga_x < offset_x + scaled_gb_h_pixels && 
                 vga_y >= offset_y && vga_y < offset_y + scaled_gb_v_pixels
             ) begin
-                decode_gb_to_rgb(frame_buffer[read_addr], vga_r_r, vga_g_r, vga_b_r);
-                
+                decode_gb_to_rgb(RDATA_r, vga_r_r, vga_g_r, vga_b_r);
                 
                 if (scaling == 1) begin
                     read_addr <= read_addr + 1;
                 end else if (scaling == 2) begin
                     read_addr <= read_addr + vga_x[0];
-
-                    vga_r_r <= vga_r_r | vga_y[0];
-                    vga_b_r <= vga_b_r | vga_x[0]<<1;
                 end
             end
             else if (
@@ -139,7 +161,6 @@ module top(
         end
     end
 
-
     task decode_gb_to_rgb (
         input  [1:0] data_in,
         output [1:0] data_out_r,
@@ -147,38 +168,43 @@ module top(
         output [1:0] data_out_b
     );
         begin
-//            case (data_in)
-//                2'b00 : begin
-//                    data_out_r = 2'b11;
-//                    data_out_g = 2'b11;
-//                    data_out_b = 2'b11;
-//                end
-//                2'b01 : begin
-//                    data_out_r = 2'b11;
-//                    data_out_g = 2'b11;
-//                    data_out_b = 2'b00;
-//                end
-//                2'b10 : begin
-//                    data_out_r = 2'b00;
-//                    data_out_g = 2'b11;
-//                    data_out_b = 2'b11;
-//                end
-//                2'b11 : begin
-//                    data_out_r = 2'b00;
-//                    data_out_g = 2'b00;
-//                    data_out_b = 2'b00;
-//                end
-//                default : begin
-//                    data_out_r = 2'b11;
-//                    data_out_g = 2'b00;
-//                    data_out_b = 2'b11;
-//                end
-//            endcase
-
             data_out_r = ~data_in;
             data_out_g = ~data_in;
             data_out_b = ~data_in;
         end
     endtask
 
+endmodule
+
+module ram (
+    din,
+    write_en, 
+    waddr, 
+    wclk, 
+    raddr,
+    rclk, 
+    dout
+);
+    parameter addr_width = 15;
+    parameter data_width = 2;
+
+    input [addr_width-1:0] waddr, raddr;
+    input [data_width-1:0] din;
+    input write_en, wclk, rclk;
+
+    output reg [data_width-1:0] dout;
+
+    reg [data_width-1:0] mem [(1<<addr_width)-1:0];
+    initial $readmemb("vga_frame_buffer_160x144.bin", mem);
+
+    always @(negedge wclk) // Write memory.
+    begin
+        if (write_en)
+            mem[waddr] <= din; // Using write address bus.
+    end
+
+    always @(negedge rclk) // Read memory.
+    begin
+        dout <= mem[raddr]; // Using read address bus.
+    end
 endmodule
