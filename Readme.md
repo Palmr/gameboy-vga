@@ -6,7 +6,7 @@ Currently only looking at the Game Boy Pocket as I have one with screen rot and 
 
 ## Requirements
 
-Currently running off an [Lattice Semi](http://www.latticesemi.com) [iCEblink40LP1K devkit](http://www.latticesemi.com/iCEblink40-LP1K).
+Currently running off an [Lattice Semi](http://www.latticesemi.com) FPGA on a [TinyFPGA BX](https://github.com/tinyfpga/TinyFPGA-BX).
 
 After cloning this repository make sure to pull in the submodule for building/flashing the RTL
 
@@ -24,4 +24,6 @@ Required software:
 
 ## RTL
 
-Currently just experimenting, [see the rtl/exploration/Readme.md](./rtl/exploration/Readme.md) for more on that.
+Experiments documented in [see the rtl/exploration/Readme.md](./rtl/exploration/Readme.md).
+
+Actual code is in the RTL folder currently.
