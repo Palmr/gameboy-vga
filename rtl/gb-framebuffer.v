@@ -4,6 +4,7 @@
 
 module top(
     input wire CLK_16MHz,       // Oscillator input 16Mhz
+    input wire scaling_x2,      // GB framebuffer scaling
 
     input [1:0] GB_DAT,         // GB pixel data 2 bit
     input wire GB_HSYNC,        // GB HSYNC
@@ -18,8 +19,6 @@ module top(
 );
     parameter gb_h_pixels  = 160;
     parameter gb_v_pixels  = 144;
-    parameter fb_addr_width = 15;
-    parameter gb_pixel_data_width = 2;
 
     // IO registers
     reg [1:0]   vga_r_r;    // VGA color registers R,G,B x 2 bit
@@ -76,77 +75,91 @@ module top(
     );
 
     // Framebuffer
-    reg [fb_addr_width-1:0] write_addr, read_addr;
-    localparam gb_pixel_count = gb_v_pixels * gb_h_pixels;
-    reg [gb_pixel_data_width-1:0] fb_gameboy [gb_pixel_count-1:0];
+    reg [14:0] write_addr = 0;
+    reg [14:0] read_addr = 0;
+    reg [1:0] in_pixel = 2'b10;
+    reg [1:0] buffer_pixel;
+    reg write_enable = 0;
 
-    reg [gb_pixel_data_width-1:0] gb_pixel_addr = 15'b0;
-    reg LAST_GB_VSYNC_RESET = 1'b0;
+    ram fb_gameboy (
+        .din(GB_DAT),
+        .write_en(write_enable), 
+        .waddr(write_addr), 
+        .wclk(GB_PX_CLK), 
+        .raddr(read_addr),
+        .rclk(CLK_25MHz), 
+        .dout(buffer_pixel)
+    );
 
-    always @(negedge GB_PX_CLK) // Write memory
+    wire VSYNCED;
+    wire VSANKED;
+    // Data writes on negedge of GB_PX_CLK, increment address on posedge
+    always @(posedge GB_PX_CLK)
     begin
-        if(GB_VSYNC == 0 && LAST_GB_VSYNC_RESET == 1) begin // VSYNC
-            fb_gameboy[0] <= GB_DAT;
-            gb_pixel_addr <= 1;
-            LAST_GB_VSYNC_RESET <= 0;
+        if (VSYNCED == ~VSANKED)
+        begin
+            write_addr <= 14'b0;
+            write_enable <= 1;
+            VSANKED <= VSYNCED;
         end
-        else begin
-            fb_gameboy[gb_pixel_addr] <= GB_DAT;
-            gb_pixel_addr <= gb_pixel_addr + 1; // Increment address
-            if(GB_VSYNC == 1) begin
-                LAST_GB_VSYNC_RESET <= 1;
-            end
+        else
+        begin
+            write_addr <= write_addr + 1;
         end
     end
+    // Reset pixel counter on VSYNC and enable writing
+    always @(posedge GB_VSYNC)
+    begin
+        VSYNCED <= ~VSYNCED;
+    end
 
-
-    reg [gb_pixel_data_width-1:0] fb_disconnected [gb_pixel_count-1:0];
-    initial $readmemb("empty-fb.bin", fb_disconnected);
-
-    reg [gb_pixel_data_width-1:0] read_data_reg = 2'b00;
-
-    reg gb_on = 0;
-
-    localparam scaling = 2;
-    localparam offset_x = (640 / 2) - ((gb_h_pixels * scaling) / 2);
-    localparam offset_y = (480 / 2) - ((gb_v_pixels * scaling) / 2);
+    // Scaling 
+    reg [1:0] scaling = 1 << scaling_x2;
+    reg [8:0] scaled_gb_h_pixels = gb_h_pixels * scaling;
+    reg [8:0] scaled_gb_v_pixels = gb_v_pixels * scaling;
+    reg [7:0] offset_x = (640 / 2) - (scaled_gb_h_pixels / 2);
+    reg [7:0] offset_y = (480 / 2) - (scaled_gb_v_pixels / 2);
 
     always @(posedge CLK_25MHz) begin
         if(vga_pixel_active == 1) begin
             if (
-                vga_x >= offset_x && vga_x < offset_x + (gb_h_pixels * scaling) &&
-                vga_y >= offset_y && vga_y < offset_y + (gb_v_pixels * scaling)
+                vga_x >= offset_x && vga_x < offset_x + scaled_gb_h_pixels && 
+                vga_y >= offset_y && vga_y < offset_y + scaled_gb_v_pixels
             ) begin
-                if (gb_on) begin
-                    decode_gb_to_rgb(fb_gameboy[read_addr], vga_r_r, vga_g_r, vga_b_r);
-                end else begin
-                    decode_gb_to_rgb(fb_disconnected[read_addr], vga_r_r, vga_g_r, vga_b_r);
-                end
+                decode_gb_to_rgb(buffer_pixel, vga_r_r, vga_g_r, vga_b_r);             
 
                 if (scaling == 1) begin
                     read_addr <= read_addr + 1;
                 end else if (scaling == 2) begin
-                    if (vga_x == offset_x+1 && vga_y[0] == 1) begin
-                        read_addr <= read_addr - gb_h_pixels + 1;
-                    end else begin
-                        read_addr <= read_addr + vga_x[0];
-                    end
+                    read_addr <= read_addr + vga_x[0];
                 end
             end
             else if (
-                vga_x == offset_x + (gb_h_pixels * scaling) &&
-                vga_y == offset_y + (gb_v_pixels * scaling)
+                scaling == 2 && 
+                vga_x == offset_x + scaled_gb_h_pixels && 
+                vga_y >= offset_y && vga_y < offset_y + scaled_gb_v_pixels &&
+                vga_y[0] == 0
+            ) begin
+                read_addr <= read_addr - gb_h_pixels;
+
+                vga_r_r <= 0;
+                vga_g_r <= 0;
+                vga_b_r <= 0;
+            end
+            else if (
+                vga_x == offset_x + scaled_gb_h_pixels && 
+                vga_y == offset_y + scaled_gb_v_pixels
             ) begin
                 read_addr <= 0;
 
-                vga_r_r <= 2'b11;
-                vga_g_r <= 2'b00;
-                vga_b_r <= 2'b00;
+                vga_r_r <= 0;
+                vga_g_r <= 0;
+                vga_b_r <= 0;
             end
             else begin
-                vga_r_r <= 2'b01;
-                vga_g_r <= 2'b11;
-                vga_b_r <= 2'b01;
+                vga_r_r <= 0;
+                vga_g_r <= 0;
+                vga_b_r <= 0;
             end
         end
         else begin  // When display is not enabled everything is black
@@ -163,38 +176,43 @@ module top(
         output [1:0] data_out_b
     );
         begin
-//            case (data_in)
-//                2'b00 : begin
-//                    data_out_r = 2'b11;
-//                    data_out_g = 2'b11;
-//                    data_out_b = 2'b11;
-//                end
-//                2'b01 : begin
-//                    data_out_r = 2'b11;
-//                    data_out_g = 2'b11;
-//                    data_out_b = 2'b00;
-//                end
-//                2'b10 : begin
-//                    data_out_r = 2'b00;
-//                    data_out_g = 2'b11;
-//                    data_out_b = 2'b11;
-//                end
-//                2'b11 : begin
-//                    data_out_r = 2'b00;
-//                    data_out_g = 2'b00;
-//                    data_out_b = 2'b00;
-//                end
-//                default : begin
-//                    data_out_r = 2'b11;
-//                    data_out_g = 2'b00;
-//                    data_out_b = 2'b11;
-//                end
-//            endcase
-
             data_out_r = ~data_in;
             data_out_g = ~data_in;
             data_out_b = ~data_in;
         end
     endtask
 
+endmodule
+
+module ram (
+    din,
+    write_en, 
+    waddr, 
+    wclk, 
+    raddr,
+    rclk, 
+    dout
+);
+    parameter addr_width = 15;
+    parameter data_width = 2;
+
+    input [addr_width-1:0] waddr, raddr;
+    input [data_width-1:0] din;
+    input write_en, wclk, rclk;
+
+    output reg [data_width-1:0] dout;
+
+    reg [data_width-1:0] mem [(1<<addr_width)-1:0];
+    initial $readmemb("empty-fb.bin", mem);
+
+    always @(negedge wclk) // Write memory.
+    begin
+        if (write_en)
+            mem[waddr] <= din; // Using write address bus.
+    end
+
+    always @(negedge rclk) // Read memory.
+    begin
+        dout <= mem[raddr]; // Using read address bus.
+    end
 endmodule

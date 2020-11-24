@@ -3,6 +3,9 @@
 # FPGA clock
 set_io CLK_16MHz    B2
 
+# 2x Scaling
+set_io scaling_x2   A2  # BX:1
+
 # GB LCD Inputs
 set_io GB_DAT[0]    C1  # BX:5  <- white <- MGB LCD pin 5
 set_io GB_DAT[1]    D1  # BX:7  <- white <- MGB LCD pin 6
