@@ -85,9 +85,9 @@ module top(
         .din(GB_DAT),
         .write_en(write_enable), 
         .waddr(write_addr), 
-        .wclk(GB_PX_CLK), 
+        .wclkN(GB_PX_CLK), 
         .raddr(read_addr),
-        .rclk(CLK_25MHz), 
+        .rclkN(CLK_25MHz), 
         .dout(buffer_pixel)
     );
 
@@ -108,7 +108,7 @@ module top(
         end
     end
     // Reset pixel counter on VSYNC and enable writing
-    always @(posedge GB_VSYNC)
+    always @(negedge GB_VSYNC)
     begin
         VSYNCED <= ~VSYNCED;
     end
@@ -188,9 +188,9 @@ module ram (
     din,
     write_en, 
     waddr, 
-    wclk, 
+    wclkN, 
     raddr,
-    rclk, 
+    rclkN, 
     dout
 );
     parameter addr_width = 15;
@@ -198,21 +198,21 @@ module ram (
 
     input [addr_width-1:0] waddr, raddr;
     input [data_width-1:0] din;
-    input write_en, wclk, rclk;
+    input write_en, wclkN, rclkN;
 
     output reg [data_width-1:0] dout;
 
     reg [data_width-1:0] mem [(1<<addr_width)-1:0];
     initial $readmemb("empty-fb.bin", mem);
 
-    always @(negedge wclk) // Write memory.
+    always @(negedge wclkN)
     begin
         if (write_en)
-            mem[waddr] <= din; // Using write address bus.
+            mem[waddr] <= din;
     end
 
-    always @(negedge rclk) // Read memory.
+    always @(negedge rclkN)
     begin
-        dout <= mem[raddr]; // Using read address bus.
+        dout <= mem[raddr];
     end
 endmodule
