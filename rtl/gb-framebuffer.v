@@ -91,26 +91,41 @@ module top(
         .dout(buffer_pixel)
     );
 
-    wire VSYNCED;
-    wire VSANKED;
+    reg VSYNCED, VSANKED, PIXEL_SEEN, PIXEL_SEEN_RECENTLY;
+    initial {VSYNCED, VSANKED, PIXEL_SEEN, PIXEL_SEEN_RECENTLY} = 4'b0000;
+
     // Data writes on negedge of GB_PX_CLK, increment address on posedge
     always @(posedge GB_PX_CLK)
     begin
+        PIXEL_SEEN <= ~PIXEL_SEEN_RECENTLY;
+
         if (VSYNCED == ~VSANKED)
         begin
             write_addr <= 14'b0;
             write_enable <= 1;
             VSANKED <= VSYNCED;
         end
-        else
-        begin
+        else begin
             write_addr <= write_addr + 1;
         end
     end
-    // Reset pixel counter on VSYNC and enable writing
-    always @(negedge GB_VSYNC)
+    // // Reset pixel counter after 500us of no pixels seen
+    reg [14:0] clock_counter;
+    always @(posedge CLK_25MHz)
     begin
-        VSYNCED <= ~VSYNCED;
+        if (clock_counter == 12500) begin
+            clock_counter <= 0;
+            // Every time the pixel clocks we set seen to inverse of seen_recently, if equal nothing seen since last countdown expiry
+            if (PIXEL_SEEN == PIXEL_SEEN_RECENTLY) begin
+                VSYNCED <= ~VSANKED;
+            end
+            else begin
+                PIXEL_SEEN_RECENTLY <= ~PIXEL_SEEN_RECENTLY;
+            end
+        end
+        else begin
+            clock_counter <= clock_counter + 1;
+        end
     end
 
     // Scaling 
